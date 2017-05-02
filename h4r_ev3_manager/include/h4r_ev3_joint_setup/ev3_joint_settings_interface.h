@@ -106,23 +106,26 @@ public:
 		 ROS_INFO("Controller Change");
 		for (std::list<ControllerInfo>::const_iterator it = start_list.begin(); it != start_list.end(); it++)
 		{
-			for (std::set<std::string>::const_iterator res = it->resources.begin(); res != it->resources.end(); res++)
-			{
-				ROS_INFO_STREAM(it->type<<" requests Joint "<<it->name<<" "<<*res);
-
-				try
+			for (std::vector<InterfaceResources>::const_iterator ifres = it->claimed_resources.begin(); ifres != it->claimed_resources.end(); ifres++)
+			{ 
+				for (std::set<std::string>::const_iterator res = ifres->resources.begin(); res != ifres->resources.end(); res++)
 				{
-					Ev3JointInterfaceHandle handle=getHandle(*res);
-					Ev3JointSettings::Ev3HwSettings ev3settings;
+					ROS_INFO_STREAM(it->type<<" requests Joint "<<it->name<<" "<<ifres->hardware_interface<<" "<< *res);
 
-					handle.getSettings().port.setMotorCommand(Ev3Strings::EV3MOTORCOMMANDS_RESET);
-					getJointSettings(*res, ev3settings);
-					ROS_INFO("----------------------------------------------<");
-					handle.getSettings().load(ev3settings,true);
-				}
-				catch(const Ev3JointInterfaceException& e)
-				{
-					ROS_ERROR_STREAM("Did not find handle: "<<*res);
+					try
+					{
+						Ev3JointInterfaceHandle handle=getHandle(*res);
+						Ev3JointSettings::Ev3HwSettings ev3settings;
+
+						handle.getSettings().port.setMotorCommand(Ev3Strings::EV3MOTORCOMMANDS_RESET);
+						getJointSettings(*res, ev3settings);
+						ROS_INFO("----------------------------------------------<");
+						handle.getSettings().load(ev3settings,true);
+					}
+					catch(const Ev3JointInterfaceException& e)
+					{
+						ROS_ERROR_STREAM("Did not find handle: "<<*res);
+					}
 				}
 			}
 		}
